@@ -21,4 +21,6 @@ The structure in MongoDb of an album looks like this:
 
 
 
-At some point we'll add entries for cover art in here as well.
+## Future
+* At some point we'll add entries for cover art in here as well.
+* There needs to be a facility for maintaining the data as well -- this database reflects the underlying set of directories and files where music is stored, and if files are moved or deleted, we need to be able to either mark obsoltete entries as such or delete them outright periodically.
