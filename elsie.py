@@ -29,6 +29,7 @@
 '''
 
 from flask import Flask 
+from flask import send_file
 
 from pymongo import MongoClient
 
@@ -42,6 +43,9 @@ app = Flask(__name__)
 app.debug = True
 
 kMongoIp = "192.168.1.8"
+kMusicBase = '/Volumes/zappa_files/music/'
+
+
 
 ## !!! Things to move into config !!!
 
@@ -211,6 +215,25 @@ def date(fromDate, toDate=None):
    txt = u"\n".join([u"{0}: {1}".format(a['artist'], a['album']) for a in cur])
 
    return u"<pre>{0}</pre>".format(txt).encode("utf-8")
+
+
+@app.route("/track/<artist>/<album>/<fileName>")
+def track(artist, album, fileName):
+   '''
+      MP3 files (and cover art, eventually) are not stored in our regular
+      static directory that other web app assets are served from, so we need
+      a separate method to handle these files.
+
+      See the notes in the Flask docs about configuring the Flask app to set
+      USE_X_SENDFILE in production where the server supports it so the server
+      is actually doing the file serving, not our Flask process.
+
+      TODO: We need to accept a query string like "download=1" to indicate that
+      we want to download the file as an attachment instead of listening to it. 
+
+   '''
+   filePath = os.path.join(kMusicBase, artist, album, fileName)
+   return send_file(filePath)
 
 
 if __name__ == "__main__":
