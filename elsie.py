@@ -100,10 +100,18 @@ def artist(artist):
    # repeated, we need to make sure we don't repeat them.
    union = set()
 
+   artistName = None
+
    for album in artistList:
+      artistName = album['artist']
       union.add(AlbumToTuple(album))
 
    for album in trackArtists:
+      if not artistName:
+         for track in album['tracks']:
+            if track['trackArtistPath'] == artist:
+               artistName = track['trackArtist']
+               break
       union.add(AlbumToTuple(album))
 
    albumList = [dict(year=i[0], artist=i[1], title=i[2], artistPath=i[3], 
@@ -112,7 +120,7 @@ def artist(artist):
    # ...we'll need to convert the list ot tuples back into a list of 
    # dicts. 
 
-   title = u"Artist: {0}".format(artist)
+   title = u"Artist: {0}".format(artistName)
 
    return render_template('artist.html', title=title, albums=albumList)
 
