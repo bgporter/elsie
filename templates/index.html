@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block body %}
+   <h2>Artists:</h2>
+   {% for letter in letters %}
+   <span class="letter"><a href="{{ url_for('alpha', letter=letter)}}">{{ letter }} </a></span>
+   {% endfor %}
+   <span class="letter"><a href="{{ url_for('alpha', letter='0')}}">0-9 </a></span>
+
+   <h2>Recent:</h2>
+{% endblock %}

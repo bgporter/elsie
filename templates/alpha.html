@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block body %}
+   <ul>
+   {% for album in artists %}
+   <li><a href="{{url_for('artist', artist=album.path)}}">{{ album.artist }}</a></li>
+   {% endfor %}
+   </ul>
+{% endblock %}

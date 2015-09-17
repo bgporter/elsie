@@ -30,6 +30,8 @@
 
 from flask import Flask 
 from flask import send_file
+from flask import render_template
+from flask import request
 
 from pymongo import MongoClient
 
@@ -62,7 +64,9 @@ def index():
       Should show links to alphabetical artist pages and date range pages.
    '''
 
-   return "<h1>Howdy. More Coming Soon.</h1>"
+   letters = [chr(i+65) for i in range(26)]
+
+   return render_template('index.html', title="Hello", letters=letters)
 
 
 @app.route("/artist/<artist>/")
@@ -102,16 +106,15 @@ def artist(artist):
    for album in trackArtists:
       union.add(AlbumToTuple(album))
 
-   artistList = sorted(list(union))
+   albumList = [dict(year=i[0], artist=i[1], title=i[2], artistPath=i[3], 
+      albumPath=i[4]) for i in sorted(list(union))]
 
    # ...we'll need to convert the list ot tuples back into a list of 
    # dicts. 
 
-   if artistList:
-      text = u"\n".join([u"{0}: {1} ({2})".format(a[1], a[2], a[0]) for a in artistList])
-   else:
-      text = "No results found for {0}".format(artist)
-   return u"<pre>{0}</pre>".format(text).encode("utf-8")
+   title = u"Artist: {0}".format(artist)
+
+   return render_template('artist.html', title=title, albums=albumList)
 
 
 @app.route("/alpha/<letter>/")
@@ -129,7 +132,13 @@ def alpha(letter):
    both artists (album level) and track artists (track level)
 
    '''
-   pattern = re.compile(r"^{0}.*".format(letter), re.IGNORECASE)
+   if letter.isdigit():
+      # match any string starting with a digit.
+      pattern = re.compile(r"^\d.*")
+      title = "Artists: 0-9"
+   else:
+      pattern = re.compile(r"^{0}.*".format(letter), re.IGNORECASE)
+      title = "Artists: {0}".format(letter)
    cursor = albums.find({"artist":  pattern})
 
    artists = set()
@@ -143,11 +152,10 @@ def alpha(letter):
          if pattern.match(track['trackArtist']):      
             artists.add((track['trackArtist'], track['trackArtistPath']))
 
-   artists = sorted(list(artists))
+   artists = [dict(artist=i[0], path=i[1]) for i in sorted(list(artists))]
 
-   text = u"\n".join([u"{0}: {1}".format(a[0], a[1]) for a in artists])
 
-   return u"<pre>{0}</pre>".format(text).encode("utf-8")   
+   return render_template("alpha.html", title=title, artists=artists)
 
 @app.route("/album/<artist>/<album>")
 def album(artist, album):
@@ -233,7 +241,8 @@ def track(artist, album, fileName):
 
    '''
    filePath = os.path.join(kMusicBase, artist, album, fileName)
-   return send_file(filePath)
+   download = request.args.get("download", "0")
+   return send_file(filePath, None, download=="1")
 
 
 if __name__ == "__main__":

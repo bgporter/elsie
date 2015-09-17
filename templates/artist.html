@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block body %}
+
+   <ul>
+      {% for album in albums %}
+      <li>{{album.artist}}: <a href="{{ url_for('album', artist=album.artistPath, album=album.albumPath)}}">{{album.title}}</a> {% if album.year %} ({{album.year}}) {%endif%}</li>
+
+      {% endfor %}
+   </ul>
+
+{% endblock %}
