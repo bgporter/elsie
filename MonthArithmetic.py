@@ -55,7 +55,7 @@ class Month(object):
          year = year or today.year
          self.month = datetime(year, month, 1)
 
-   def Next(self):
+   def Next(self, count=1):
       '''
       >>> this = Month(9, 2015)
       >>> str(this)
@@ -63,6 +63,12 @@ class Month(object):
       >>> next = this.Next()
       >>> str(next)
       '201510'
+      >>> str(this.Next(2))
+      '201511'
+      >>> str(this.Next(0))
+      '201509'
+      >>> str(this.Next(-1))
+      '201508'
       >>> str(this.Previous())
       '201508'
       >>> this = Month(12, 2015)
@@ -73,12 +79,30 @@ class Month(object):
       >>> str(prev)
       '201512'
       '''
-      nextMonth = self.month + timedelta(32)
-      return Month(nextMonth.month, nextMonth.year)
+      if 0 == count:
+         return self
+      elif count < 0:
+         return self.Previous(count * -1)
+      else:
+         nextMonth = self.month + timedelta(32)
+         nextMonth = Month(nextMonth.month, nextMonth.year)
+         if 1 == count:
+            return nextMonth
+         else:
+            return nextMonth.Next(count-1)
 
-   def Previous(self):
-      prevMonth = self.month - timedelta(1)
-      return Month(prevMonth.month, prevMonth.year)
+   def Previous(self, count=1):
+      if 0 == count:
+         return self
+      elif count < 0:
+         return self.Next(-1 * count)
+      else:
+         prevMonth = self.month - timedelta(1)
+         prevMonth = Month(prevMonth.month, prevMonth.year)
+         if 1 == count:
+            return prevMonth
+         else:
+            return prevMonth.Previous(count-1)
 
    def __str__(self):
       return self.month.strftime(kMonthFormat)
