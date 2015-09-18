@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block body %}
+
+
+{% for track in album.tracks %}
+<div class="track">
+<span class="trackNum">{{track.trackNum}}</span>
+<a href="{{ url_for('track', artist=album.artistPath, album=album.albumPath, fileName=track.fileName) }}">{{ track.title }}</a>  ({{track.duration}})
+</div>
+
+{% endfor %}
+
+{% endblock %}

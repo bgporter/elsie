@@ -173,8 +173,9 @@ def album(artist, album):
    theAlbum = albums.find_one({'artistPath': artist, 'albumPath': album})
    p = pprint.PrettyPrinter()
 
-   return "<pre>{0}</pre>".format(p.pformat(theAlbum))
+   title = u"{0}: {1}".format(theAlbum['artist'], theAlbum['album'])
 
+   return render_template('album.html', title=title, album=theAlbum)
 
 class BadDateError(Exception):
    pass
