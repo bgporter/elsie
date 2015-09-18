@@ -39,6 +39,9 @@ import datetime
 import os
 import pprint
 import re
+
+from MonthArithmetic import Month
+
 app = Flask(__name__)
 
 ## !!! Things to move into config !!!
@@ -66,7 +69,39 @@ def index():
 
    letters = [chr(i+65) for i in range(26)]
 
-   return render_template('index.html', title="Hello", letters=letters)
+   # build a list of date ranges going back a few months
+   kRecentMonths = 12
+
+   thisMonth = Month()
+   thisYear = thisMonth.year
+
+   # start at this month and work backwards
+   years = []
+   year = {"year": thisYear, "months": [] }
+   years.append(year)
+   for i in range(kRecentMonths):
+      monthDict = {
+         "from": str(thisMonth), 
+         "to": str(thisMonth.Next()),
+         "short": thisMonth.Formatted("%b"),
+         "long": thisMonth.Formatted("%B"),
+         "full": thisMonth.Formatted("%b %Y")
+         }
+      year['months'].append(monthDict)
+      thisMonth = thisMonth.Previous()
+      if thisMonth.year != thisYear:
+         thisYear = thisMonth.year
+         year = {"year": thisYear, "months": [] }
+         years.append(year)
+
+   # we may have just added an empty year dict to the end of our 
+   # years list. If so, get rid of it.
+   if 0 == len(years[-1]['months']):
+      years.pop()
+
+
+
+   return render_template('index.html', title="Hello", letters=letters, years=years)
 
 
 @app.route("/artist/<artist>/")
@@ -218,7 +253,11 @@ def date(fromDate, toDate=None):
       fromDate = IntToDate(fromDate)
       if toDate:
          toDate = IntToDate(toDate)
+         if toDate < fromDate:
+            # doesn't make sense if they're out of order; swap!
+            fromDate, toDate = toDate, fromDate
    except BadDateError:
+      # !!! this should really be raising an HTTP error
       return "Badly formatted date"
 
 
@@ -228,10 +267,40 @@ def date(fromDate, toDate=None):
 
    cur = albums.find({"tracks": {"$elemMatch": {"added": matchDates}}})
 
+   # prep links for navigation to earlier/later periods
+   # We'll create a pair of dicts that will hold from: and (optional) to:
+   # strings in the YYYYMM format for the Previous and Next (if meaningful)
+   # links that we'll display
+   
+   previous = {"to" : None}
+   next = {"to" : None}
+   monthRange = 1
+   fromDate = Month(fromDate)
+   if toDate:
+      toDate = Month(toDate)
+      monthRange = fromDate.Range(toDate)
 
-   txt = u"\n".join([u"{0}: {1}".format(a['artist'], a['album']) for a in cur])
+   previous['from'] = fromDate.Previous(monthRange)
+   next['from'] = fromDate.Next(monthRange)
+   if toDate:
+      previous['to'] = toDate.Previous(monthRange)
+      next['to'] = toDate.Next(monthRange)
 
-   return u"<pre>{0}</pre>".format(txt).encode("utf-8")
+   if toDate:
+      if fromDate.year == toDate.year:
+         fromFmt = "%B"
+      else:
+         fromFmt = "%B %Y"
+      if 1 == fromDate.Range(toDate):
+         title = "Added in {0}".format(fromDate.Formatted("%B %Y"))
+      else:
+         title = "Added between {0} - {1}".format(
+            fromDate.Formatted(fromFmt), 
+            toDate.Formatted("%B %Y"))
+   else:
+      title = "Added in/after {0}".format(fromDate.Formatted("%B %Y"))
+
+   return render_template("date.html", title=title, albums=cur, prev=previous, next=next)
 
 
 @app.route("/track/<artist>/<album>/<fileName>")
@@ -252,6 +321,14 @@ def track(artist, album, fileName):
    filePath = os.path.join(kMusicBase, artist, album, fileName)
    download = request.args.get("download", "0")
    return send_file(filePath, None, download=="1")
+
+@app.route("/zip/<artist>/<album>")
+def zip(artist, album):
+   '''
+      create a zip file containing the requested artist/album, and return it.
+
+   '''
+   return "NOT YET, BABY"
 
 
 if __name__ == "__main__":

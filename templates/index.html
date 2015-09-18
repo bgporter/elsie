@@ -7,4 +7,11 @@
    <span class="letter"><a href="{{ url_for('alpha', letter='0')}}">0-9 </a></span>
 
    <h2>Recent:</h2>
+   {% for year in years %}
+      <h3>{{ year.year }}</h3>
+      {% for month in year.months %}
+      <span><a href="{{url_for('date', fromDate=month.from, toDate=month.to)}}">
+         {{month.long}}</a>  </span>
+      {% endfor %}
+   {% endfor %}
 {% endblock %}
