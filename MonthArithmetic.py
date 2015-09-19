@@ -122,6 +122,8 @@ class Month(object):
       2
       >>> Month(3, 2015).Range(Month(3, 2015))
       0
+      >>> Month(3, 2014).Range(Month(3, 2015))
+      12
       '''
       if other >= self:
          dayDelta = other._month - self._month

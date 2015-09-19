@@ -5,7 +5,11 @@
    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet" />
 </head>
 <body>
+   {% if title != "Home" %}
+   <a href="{{url_for('index')}}">Home</a><br />
+   {% endif %}
    <h2>{{ title }}</h2>
+
    {% block body %}{% endblock %}
 </body>
 <html>

@@ -1,10 +1,14 @@
 {% extends "base.html" %}
 {% block body %}
 
+<a href="{{ url_for('date', fromDate=prev.from, toDate=prev.to)}}">&lt; Older</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="{{ url_for('date', fromDate=next.from, toDate=next.to)}}">Newer &gt;</a>
+<br/> <br />
 <table>
 {% for album in albums %}
 <tr>
-   <td>{{ album.artist }}</td>
+   <td><a href="{{ url_for('artist', artist=album.artistPath) }}">{{ album.artist }}</a></td>
    <td><a href="{{url_for('album', artist=album.artistPath, album=album.albumPath)}}"> 
       {{ album.album }}</a></td>
 </tr>

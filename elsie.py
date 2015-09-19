@@ -101,7 +101,7 @@ def index():
 
 
 
-   return render_template('index.html', title="Hello", letters=letters, years=years)
+   return render_template('index.html', title="Home", letters=letters, years=years)
 
 
 @app.route("/artist/<artist>/")
@@ -280,11 +280,11 @@ def date(fromDate, toDate=None):
       toDate = Month(toDate)
       monthRange = fromDate.Range(toDate)
 
-   previous['from'] = fromDate.Previous(monthRange)
-   next['from'] = fromDate.Next(monthRange)
+   previous['from'] = str(fromDate.Previous(monthRange))
+   next['from'] = str(fromDate.Next(monthRange))
    if toDate:
-      previous['to'] = toDate.Previous(monthRange)
-      next['to'] = toDate.Next(monthRange)
+      previous['to'] = str(toDate.Previous(monthRange))
+      next['to'] = str(toDate.Next(monthRange))
 
    if toDate:
       if fromDate.year == toDate.year:
