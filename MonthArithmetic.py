@@ -116,10 +116,17 @@ class Month(object):
       3
       >>> Month(1, 2015).Range(Month(4, 2015))
       3
+      >>> Month(2, 2015).Range(Month(3, 2015))
+      1
+      >>> Month(2, 2015).Range(Month(4, 2015))
+      2
+      >>> Month(3, 2015).Range(Month(3, 2015))
+      0
       '''
-      if other > self:
+      if other >= self:
          dayDelta = other._month - self._month
-         monthDelta = dayDelta.days / 30
+         # Add 3 extra days to catch problems around Feb being short.
+         monthDelta = (dayDelta.days + 3) / 30
       else:
          return other.Range(self)
 
@@ -127,7 +134,7 @@ class Month(object):
 
 
    def __cmp__(self, other):
-      return cmp(self.month, other.month)
+      return cmp(self._month, other._month)
 
 
 
