@@ -5,8 +5,10 @@
 {% for track in album.tracks %}
 <tr>
 <td>{{track.trackNum}}</td>
-<td><a href="{{ url_for('track', artist=album.artistPath, album=album.albumPath, fileName=track.fileName) }}">{{ track.title }}</a></td>
-<td>({{track.duration}})</td>
+<td><a href="{{ url_for('track', artist=album.artistPath, album=album.albumPath, fileName=track.fileName) }}">{{ track.title }}</a>{% if track.trackArtist and track.trackArtist != album.artist %}<br />
+performed by <a href="{{url_for('artist', artist=track.trackArtistPath)}}">{{track.trackArtist}}</a> {%endif%}
+</td>
+<td>{{track.duration}}</td>
 </tr>
 {% endfor %}
 </table>
