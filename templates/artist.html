@@ -6,7 +6,7 @@
       <tr>
          <td>{{album.artist}}</td>
          <td><a href="{{ url_for('album', artist=album.artistPath, album=album.albumPath)}}">{{album.title}}</a></td>
-         <td>{% if album.year %} ({{album.year}}) {%endif%}</td>
+         <td>{% if album.year %} {{album.year}} {%endif%}</td>
       </tr>
       {% endfor %}
    </table>
