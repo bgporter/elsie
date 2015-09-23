@@ -32,6 +32,11 @@ from flask import Flask
 from flask import send_file
 from flask import render_template
 from flask import request
+from flask import redirect
+from flask import url_for
+
+import flask_login
+from flask_login import login_required
 
 from pymongo import MongoClient
 
@@ -41,25 +46,46 @@ import pprint
 import re
 
 from MonthArithmetic import Month
+import user
 
-app = Flask(__name__)
 
 ## !!! Things to move into config !!!
-app.debug = True
-
 kMongoIp = "192.168.1.8"
 kMusicBase = '/Volumes/zappa_files/music/'
 
 
+app = Flask(__name__)
 
 ## !!! Things to move into config !!!
+DEBUG = True
+SECRET_KEY = "![d\x04R\x1c\x05\xfc+\x93\xeb\x03\x1e\x1b\xb9\x94\xfb\x8f\xb4\xb8L'=D"
 
+app.config.from_object(__name__)
 
-
+## MongoDb setup.
 db = MongoClient(kMongoIp)
 albums = db['test_albums']['albums']
 
+
+# get flask-login set up.
+loginManager = flask_login.LoginManager()
+loginManager.login_view = "login"
+loginManager.init_app(app)
+
+@loginManager.user_loader
+def loadUser(userId):
+   return user.loadUser(db, userId)
+
+
+
+
+
+
+
+
+
 @app.route("/")
+@login_required
 def index():
    '''
       Main index page of the app (after logging in). 
@@ -103,6 +129,29 @@ def index():
 
    return render_template('index.html', title="Home", letters=letters, years=years)
 
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+   if "POST" == request.method:
+      print "LOGGING IN"
+      email = request.form['email']
+      pw = request.form['password']
+      print "{0}: {1}".format(email, pw)
+      target = 'login'
+      if email and pw:
+         # can't log in if something's blank
+         u = user.loadUser(db, email)
+         if u:
+            if u.authenticate(pw):
+               flask_login.login_user(u)
+               next = request.args.get('next')
+               ## !!! check to make sure this is okay?
+               target = next
+
+      return redirect(target or  url_for('index'))
+   else:
+      return render_template("login.html", title="Elsie: Login")
 
 @app.route("/artist/<artist>/")
 def artist(artist):
@@ -155,7 +204,7 @@ def artist(artist):
    # ...we'll need to convert the list ot tuples back into a list of 
    # dicts. 
 
-   title = u"Artist: {0}".format(artistName)
+   title = u"{0}".format(artistName)
 
    return render_template('artist.html', title=title, albums=albumList)
 
