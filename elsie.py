@@ -32,6 +32,7 @@ from flask import Flask
 from flask import send_file
 from flask import render_template
 from flask import request
+from flask import Response
 from flask import redirect
 from flask import url_for
 
@@ -42,11 +43,14 @@ from pymongo import MongoClient
 
 import datetime
 import os
+import glob
 import pprint
 import re
 
 from MonthArithmetic import Month
 import user
+
+import zipstream
 
 
 ## !!! Things to move into config !!!
@@ -153,7 +157,14 @@ def login():
    else:
       return render_template("login.html", title="Elsie: Login")
 
+
+@app.route("/logout")
+def logout():
+   flask_login.logout_user()
+   return redirect(url_for("index"))
+
 @app.route("/artist/<artist>/")
+@login_required
 def artist(artist):
    '''
       Finds a list of all albums that the specified artist is listed on. 
@@ -210,6 +221,7 @@ def artist(artist):
 
 
 @app.route("/alpha/<letter>/")
+@login_required
 def alpha(letter):
    '''
       List all artists beginning with a specified letter (or in reality as 
@@ -250,6 +262,7 @@ def alpha(letter):
    return render_template("alpha.html", title=title, artists=artists)
 
 @app.route("/album/<artist>/<album>")
+@login_required
 def album(artist, album):
    '''
       Display a single album given its artistPath and albumPath. 
@@ -285,6 +298,7 @@ def IntToDate(val):
 
 @app.route("/date/<int:fromDate>/")
 @app.route("/date/<int:fromDate>/<int:toDate>/")
+@login_required
 def date(fromDate, toDate=None):
    '''
       Finds all albums that have had at least one track added to the collection
@@ -353,6 +367,7 @@ def date(fromDate, toDate=None):
 
 
 @app.route("/track/<artist>/<album>/<fileName>")
+@login_required
 def track(artist, album, fileName):
    '''
       MP3 files (and cover art, eventually) are not stored in our regular
@@ -377,7 +392,26 @@ def zip(artist, album):
       create a zip file containing the requested artist/album, and return it.
 
    '''
-   return "NOT YET, BABY"
+
+   def ArchiveName(artist,album, file):
+      fileName = os.path.split(file)[1]
+      return os.path.join(artist, album, fileName)
+
+   def generator(artist, album):
+      z = zipstream.ZipFile()
+      files = glob.glob(os.path.join(kMusicBase, artist, album, "*.mp3"))
+      for f in files:
+         print f
+         z.write(f, arcname=ArchiveName(artist, album, f))
+
+      for chunk in z:
+         print "YIELD"
+         yield chunk
+
+   response = Response(generator(artist, album), mimetype='application/zip')
+   response.headers['Content-Disposition'] = 'attachment; filename={}.zip'.format(album)
+   return response
+
 
 
 if __name__ == "__main__":
