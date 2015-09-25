@@ -405,7 +405,6 @@ def zip(artist, album):
          z.write(f, arcname=ArchiveName(artist, album, f))
 
       for chunk in z:
-         print "YIELD"
          yield chunk
 
    response = Response(generator(artist, album), mimetype='application/zip')
