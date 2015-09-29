@@ -55,7 +55,8 @@ import zipstream
 
 ## !!! Things to move into config !!!
 kMongoIp = "192.168.1.8"
-kMusicBase = '/Volumes/zappa_files/music/'
+kMusicBase = u'/media/usb0/music/'
+#kMusicBase = '/Volumes/zappa_files/music/'
 
 
 app = Flask(__name__)
@@ -138,10 +139,8 @@ def index():
 @app.route("/login", methods=["GET", "POST"])
 def login():
    if "POST" == request.method:
-      print "LOGGING IN"
       email = request.form['email']
       pw = request.form['password']
-      print "{0}: {1}".format(email, pw)
       target = 'login'
       if email and pw:
          # can't log in if something's blank
@@ -384,7 +383,7 @@ def track(artist, album, fileName):
    '''
    filePath = os.path.join(kMusicBase, artist, album, fileName)
    download = request.args.get("download", "0")
-   return send_file(filePath, None, download=="1")
+   return send_file(filePath.encode('utf-8'), None, download=="1")
 
 @app.route("/zip/<artist>/<album>")
 def zip(artist, album):
@@ -401,7 +400,6 @@ def zip(artist, album):
       z = zipstream.ZipFile()
       files = glob.glob(os.path.join(kMusicBase, artist, album, "*.mp3"))
       for f in files:
-         print f
          z.write(f, arcname=ArchiveName(artist, album, f))
 
       for chunk in z:
