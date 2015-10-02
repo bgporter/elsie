@@ -55,7 +55,7 @@ import zipstream
 
 ## !!! Things to move into config !!!
 kMongoIp = "192.168.1.8"
-kMusicBase = u'/media/usb0/music/'
+kMusicBase = '/media/usb0/music/'
 #kMusicBase = '/Volumes/zappa_files/music/'
 
 
@@ -392,14 +392,25 @@ def zip(artist, album):
 
    '''
 
-   def ArchiveName(artist,album, file):
-      fileName = os.path.split(file)[1]
-      return os.path.join(artist, album, fileName)
+   import sys
+   print sys.version
+
+   def ArchiveName(artist,album, f):
+      fileName = os.path.split(f)[1]
+
+      #artist = artist.encode('utf-8')
+      #album = album.encode('utf-8')
+      #print repr(fileName)
+      #fileName = fileName.encode('utf-8')
+      print repr(artist), repr(album), repr(fileName)
+      archiveName =  os.path.join(artist.encode('utf-8'), album.encode('utf-8'), fileName)
+      print archiveName
+      return archiveName
 
    def generator(artist, album):
       z = zipstream.ZipFile()
-      files = glob.glob(os.path.join(kMusicBase, artist, album, "*.mp3"))
-      for f in files:
+      files = glob.glob(os.path.join(kMusicBase, artist, album, "*.mp3").encode('utf-8'))
+      for f in sorted(files):
          z.write(f, arcname=ArchiveName(artist, album, f))
 
       for chunk in z:
