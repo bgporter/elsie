@@ -11,7 +11,11 @@
    <td><a href="{{ url_for('artist', artist=album.artistPath) }}">{{ album.artist }}</a></td>
    <td><a href="{{url_for('album', artist=album.artistPath, album=album.albumPath)}}"> 
       {{ album.album }}</a></td>
-   <td>{{album.year}}</td>
+   <td>
+      {% if album.year %}
+         <a href="{{ url_for('year', year=album.year) }}">{{album.year}}</a> 
+      {% endif %}
+   </td>
 </tr>
 
 {% endfor %}
