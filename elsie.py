@@ -381,7 +381,8 @@ def year(year):
       Get and display all albums with a release date of the specified year.
    '''
    cur = albums.find({"year": str(year)})
-   title=str(year)
+   cur.sort("artist")
+   title= "{0} Releases".format(year)
    return render_template("year.html", title=title, albums=cur, prev=year-1, next=year+1)
 
 @app.route("/track/<artist>/<album>/<fileName>")
