@@ -54,18 +54,27 @@ import zipstream
 
 
 ## !!! Things to move into config !!!
-kMongoIp = "192.168.1.8"
-kMusicBase = '/media/usb0/music/'
-#kMusicBase = '/Volumes/zappa_files/music/'
+
+import socket
+hostname = socket.gethostname()
+if hostname == 'zappa':
+   kMusicBase = '/media/usb0/music/'
+   kMongoIp = '127.0.0.1'
+
+elif hostname == 'Ornette.home':
+   kMusicBase = '/Volumes/zappa_files/music/'
+   kMongoIp = "192.168.1.8"
+
+else:
+   print "ERROR -- Unknown music location"
+
 
 
 app = Flask(__name__)
 
 ## !!! Things to move into config !!!
-DEBUG = True
-SECRET_KEY = "![d\x04R\x1c\x05\xfc+\x93\xeb\x03\x1e\x1b\xb9\x94\xfb\x8f\xb4\xb8L'=D"
 
-app.config.from_object(__name__)
+app.config.from_object('DefaultConfig')
 
 ## MongoDb setup.
 db = MongoClient(kMongoIp)
@@ -365,6 +374,16 @@ def date(fromDate, toDate=None):
    return render_template("date.html", title=title, albums=cur, prev=previous, next=next)
 
 
+@app.route('/year/<int:year>')
+@login_required
+def year(year):
+   '''
+      Get and display all albums with a release date of the specified year.
+   '''
+   cur = albums.find({"year": str(year)})
+   title=str(year)
+   return render_template("year.html", title=title, albums=cur, prev=year-1, next=year+1)
+
 @app.route("/track/<artist>/<album>/<fileName>")
 @login_required
 def track(artist, album, fileName):
@@ -397,15 +416,7 @@ def zip(artist, album):
 
    def ArchiveName(artist,album, f):
       fileName = os.path.split(f)[1]
-
-      #artist = artist.encode('utf-8')
-      #album = album.encode('utf-8')
-      #print repr(fileName)
-      #fileName = fileName.encode('utf-8')
-      print repr(artist), repr(album), repr(fileName)
-      archiveName =  os.path.join(artist.encode('utf-8'), album.encode('utf-8'), fileName)
-      print archiveName
-      return archiveName
+      return os.path.join(artist.encode('utf-8'), album.encode('utf-8'), fileName)
 
    def generator(artist, album):
       z = zipstream.ZipFile()
