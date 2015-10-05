@@ -35,6 +35,7 @@ from flask import request
 from flask import Response
 from flask import redirect
 from flask import url_for
+from flask import abort
 
 import flask_login
 from flask_login import login_required
@@ -279,8 +280,12 @@ def album(artist, album):
    p = pprint.PrettyPrinter()
 
    title = u"{0}: {1}".format(theAlbum['artist'], theAlbum['album'])
+   pageTitle = u'<a href="{0}">{1}</a>: {2}'.format(
+      url_for('artist', artist=theAlbum['artistPath']), 
+      theAlbum['artist'], theAlbum['album'])
 
-   return render_template('album.html', title=title, album=theAlbum)
+   print pageTitle
+   return render_template('album.html', title=title, pageTitle=pageTitle, album=theAlbum)
 
 class BadDateError(Exception):
    pass
@@ -403,7 +408,11 @@ def track(artist, album, fileName):
    '''
    filePath = os.path.join(kMusicBase, artist, album, fileName)
    download = request.args.get("download", "0")
-   return send_file(filePath.encode('utf-8'), None, download=="1")
+   try:
+      return send_file(filePath.encode('utf-8'), None, download=="1")
+   except IOError:
+      abort(404)
+
 
 @app.route("/zip/<artist>/<album>")
 def zip(artist, album):
