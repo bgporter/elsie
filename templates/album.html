@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block body %}
 
-<p><a href="{{url_for('zip', artist=album.artistPath, album = album.albumPath)}}">Download</a>
+<p><a href="{{url_for('zip', artist=album.artistPath, album = album.albumPath)}}">Download all tracks</a>
 </p>
 <table>
 {% for track in album.tracks %}
