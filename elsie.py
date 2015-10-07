@@ -110,11 +110,27 @@ def index():
 
    letters = [chr(i+65) for i in range(26)]
 
+   # get stuff added in the last 7, 30, 90, 180, 365 days.
+   recent = []
+   today = datetime.date.today()
+   kDateFormat = "%Y%m%d"
+   toDateStr = today.strftime(kDateFormat)
+   for days in (7, 30, 90, 180, 365):
+      fromDate = today - datetime.timedelta(days)
+      recent.append({ "days" : days, 
+            "from" : fromDate.strftime(kDateFormat),
+            "to" : toDateStr
+         })
+
+
+
    # build a list of date ranges going back a few months
    kRecentMonths = 12
 
    thisMonth = Month()
    thisYear = thisMonth.year
+
+
 
    # start at this month and work backwards
    years = []
@@ -142,7 +158,8 @@ def index():
 
 
 
-   return render_template('index.html', title="Home", letters=letters, years=years)
+   return render_template('index.html', title="Home", letters=letters, 
+      recent=recent, years=years)
 
 
 

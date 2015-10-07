@@ -2,11 +2,15 @@
 {% block body %}
    <h2>Artists:</h2>
    {% for letter in letters %}
-   <span class="letter"><a href="{{ url_for('alpha', letter=letter)}}">{{ letter }} </a></span>
+   <span class="letter"><a href="{{ url_for('alpha', letter=letter)}}">&nbsp;{{ letter }} </a></span>
    {% endfor %}
-   <span class="letter"><a href="{{ url_for('alpha', letter='0')}}">0-9 </a></span>
+   <span class="letter"><a href="{{ url_for('alpha', letter='0')}}"> 0-9 </a></span>
 
    <h2>Recent:</h2>
+   <h3>Added in last... </h3>
+   {% for r in recent %}
+      <span><a href="{{url_for('date', fromDate=r.from, toDate=r.to)}}">&nbsp;{{r.days}} days </a>  </span>
+   {% endfor %}
    {% for year in years %}
       <h3>{{ year.year }}</h3>
       {% for month in year.months %}
