@@ -5,8 +5,12 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <a href="{{ url_for('date', fromDate=next.from, toDate=next.to)}}">Newer &gt;</a>
 <br/> <br />
+
+{% for day in days %}
+<h3>{{day.date}}</h3>
+
 <table>
-{% for album in albums %}
+{% for album in day.albums %}
 <tr>
    <td><a href="{{ url_for('artist', artist=album.artistPath) }}">{{ album.artist }}</a></td>
    <td><a href="{{url_for('album', artist=album.artistPath, album=album.albumPath)}}"> 
@@ -20,4 +24,7 @@
 
 {% endfor %}
 </table>
+
+{% endfor %}
+
 {% endblock %}

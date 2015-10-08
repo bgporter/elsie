@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% block body %}
 
+
    <table>
       {% for album in albums %}
       <tr>
          <td>{{album.artist}}</td>
-         <td><a href="{{ url_for('album', artist=album.artistPath, album=album.albumPath)}}">{{album.title}}</a></td>
+         <td><a href="{{ url_for('album', artist=album.artistPath, album=album.albumPath)}}">{{album.album}}</a></td>
          <td>
             {% if album.year %}
                <a href="{{ url_for('year', year=album.year) }}">{{album.year}}</a> 

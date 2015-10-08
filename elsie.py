@@ -28,27 +28,29 @@
 
 '''
 
+from flask import abort
 from flask import Flask 
-from flask import send_file
+from flask import redirect
 from flask import render_template
 from flask import request
 from flask import Response
-from flask import redirect
+from flask import send_file
 from flask import url_for
-from flask import abort
 
 import flask_login
 from flask_login import login_required
 
 from pymongo import MongoClient
 
+import collections
 import datetime
-import os
 import glob
+import os
 import pprint
 import re
 
 from MonthArithmetic import Month
+from dictTupleAdapter import DictTupleAdapter
 import user
 
 import zipstream
@@ -202,14 +204,7 @@ def artist(artist):
       do two separate queries and combine the results manually. 
    '''
 
-   def AlbumToTuple(album):
-      return (
-         album['year'],
-         album['artist'],
-         album['album'],
-         album['artistPath'],
-         album['albumPath'],
-         )
+   dta = DictTupleAdapter('year', 'artist', 'album', 'artistPath', 'albumPath')
 
    # get the list of all albums where this artist is the album artist. 
    artistList = albums.find({u"artistPath": artist})
@@ -225,7 +220,7 @@ def artist(artist):
 
    for album in artistList:
       artistName = album['artist']
-      union.add(AlbumToTuple(album))
+      union.add(dta.DictToTuple(album))
 
    for album in trackArtists:
       if not artistName:
@@ -233,13 +228,11 @@ def artist(artist):
             if track['trackArtistPath'] == artist:
                artistName = track['trackArtist']
                break
-      union.add(AlbumToTuple(album))
+      union.add(dta.DictToTuple(album))
 
-   albumList = [dict(year=i[0], artist=i[1], title=i[2], artistPath=i[3], 
-      albumPath=i[4]) for i in sorted(list(union))]
+   albumList = [dta.TupleToDict(i) for i in sorted(list(union))]
 
-   # ...we'll need to convert the list ot tuples back into a list of 
-   # dicts. 
+   print albumList
 
    title = u"{0}".format(artistName)
 
@@ -360,6 +353,50 @@ def date(fromDate, toDate=None):
 
    cur = albums.find({"tracks": {"$elemMatch": {"added": matchDates}}})
 
+   ## build a structure to associate each album with a date that at least
+   # one track was added to the collection.
+   # 
+   addDates = collections.defaultdict(set)
+
+   print "From Date = {0}".format(fromDate)
+
+
+   def InRange(date):
+      retval = False
+      if date >= fromDate.date():
+         retval = True
+         if toDate and date > toDate.date():
+            retval = False
+      return retval
+
+   dta = DictTupleAdapter('artist', 'album', 'artistPath', 'albumPath',  'year')
+
+   for album in cur:
+      #print album['album']
+      for track in album['tracks']:
+         #print track['title'], track['added']
+         try:
+            dateAdded = track['added'].date()
+            if InRange(dateAdded):
+               addDates[dateAdded].add(dta.DictToTuple(album))
+         except KeyError:
+            # there's a track that doesn't have an add date. Ignore.
+            pass
+
+
+   # okay -- now what we have is a dict that maps dates where something was added
+   # to a list of tuples that represent albums added on that date. We need to turn this 
+   # into a list of dicts that each contain 
+   # - that date
+   # - a list of album dicts.
+   # that the template will be able to display.
+   
+   days = []
+   for key in sorted(addDates.keys()):
+      day = {"date": key.strftime("%b %d, %Y")}
+      day['albums'] =  [dta.TupleToDict(t) for t in sorted(list(addDates[key]))]
+      days.append(day)
+
    # prep links for navigation to earlier/later periods
    # We'll create a pair of dicts that will hold from: and (optional) to:
    # strings in the YYYYMM format for the Previous and Next (if meaningful)
@@ -393,7 +430,7 @@ def date(fromDate, toDate=None):
    else:
       title = "Added in/after {0}".format(fromDate.Formatted("%B %Y"))
 
-   return render_template("date.html", title=title, albums=cur, prev=previous, next=next)
+   return render_template("date.html", title=title, days=days, prev=previous, next=next)
 
 
 @app.route('/year/<int:year>')
