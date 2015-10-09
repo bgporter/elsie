@@ -161,18 +161,23 @@ def login():
    if "POST" == request.method:
       email = request.form['email']
       pw = request.form['password']
+      remember = request.form.get('remember')
+      remember = remember is not None
+      print 'remember = {0}'.format(repr(remember))
       target = 'login'
       if email and pw:
          # can't log in if something's blank
          u = user.loadUser(db, email)
          if u:
             if u.authenticate(pw):
-               flask_login.login_user(u)
+               flask_login.login_user(u, remember=remember)
                next = request.args.get('next')
                ## !!! check to make sure this is okay?
                target = next
 
-      return redirect(target or  url_for('index'))
+      target = target or 'index'
+      redirecturl = url_for(target)
+      return redirect(redirecturl)
    else:
       return render_template("login.html", title="Elsie: Login")
 
