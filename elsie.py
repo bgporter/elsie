@@ -58,18 +58,9 @@ import zipstream
 
 ## !!! Things to move into config !!!
 
-import socket
-hostname = socket.gethostname()
-if hostname == 'zappa':
-   kMusicBase = '/media/usb0/music/'
-   kMongoIp = '127.0.0.1'
+from DefaultConfig import kMusicBase
+from DefaultConfig import kMongoIp
 
-elif hostname == 'Ornette.home':
-   kMusicBase = '/Volumes/zappa_files/music/'
-   kMongoIp = "192.168.1.8"
-
-else:
-   print "ERROR -- Unknown music location"
 
 
 
